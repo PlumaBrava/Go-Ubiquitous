@@ -63,9 +63,33 @@ public class FaceWatchService extends CanvasWatchFaceService {
         return new Engine();
     }
 
+    private static class EngineHandler extends Handler {
+        private final WeakReference<FaceWatchService.Engine> mWeakReference;
+
+        public EngineHandler(FaceWatchService.Engine reference) {
+            mWeakReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            FaceWatchService.Engine engine = mWeakReference.get();
+            if (engine != null) {
+                switch (msg.what) {
+                    case MSG_UPDATE_TIME:
+                        engine.handleUpdateTimeMessage();
+                        break;
+                }
+            }
+        }
+    }
+
     private class Engine extends CanvasWatchFaceService.Engine {
         final Handler mUpdateTimeHandler = new EngineHandler(this);
-
+        boolean mRegisteredTimeZoneReceiver = false;
+        Paint mBackgroundPaint;
+        Paint mTextPaint;
+        boolean mAmbient;
+        Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -73,13 +97,6 @@ public class FaceWatchService extends CanvasWatchFaceService {
                 mTime.setToNow();
             }
         };
-        boolean mRegisteredTimeZoneReceiver = false;
-
-        Paint mBackgroundPaint;
-        Paint mTextPaint;
-
-        boolean mAmbient;
-        Time mTime;
         int mTapCount;
 
         float mXOffset;
@@ -276,26 +293,6 @@ public class FaceWatchService extends CanvasWatchFaceService {
                 long delayMs = INTERACTIVE_UPDATE_RATE_MS
                         - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
-            }
-        }
-    }
-
-    private static class EngineHandler extends Handler {
-        private final WeakReference<FaceWatchService.Engine> mWeakReference;
-
-        public EngineHandler(FaceWatchService.Engine reference) {
-            mWeakReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            FaceWatchService.Engine engine = mWeakReference.get();
-            if (engine != null) {
-                switch (msg.what) {
-                    case MSG_UPDATE_TIME:
-                        engine.handleUpdateTimeMessage();
-                        break;
-                }
             }
         }
     }
