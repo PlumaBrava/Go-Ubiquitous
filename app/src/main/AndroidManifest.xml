@@ -182,6 +182,9 @@
         </service>
         <service
             android:name=".gcm.RegistrationIntentService"
+            android:exported="false" />
+        <service
+            android:name=".Facewatch.WatchActualizationService"
             android:exported="false"></service>
     </application>
 

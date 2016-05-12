@@ -30,11 +30,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.example.android.sunshine.app.Facewatch.WatchActualizationService;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.gcm.RegistrationIntentService;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback {
 
@@ -56,6 +59,21 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+
+//
+
+
+
+
+        Intent intent1 = new Intent(getApplicationContext(), WatchActualizationService.class);
+        intent1.setAction("ACTION_FOO");
+        intent1.putExtra("EXTRA_MAXTEMP", new Random().nextInt(25));
+        intent1.putExtra("EXTRA_MINTEMP", new Random().nextInt(25));
+        intent1.putExtra("EXTRA_ICONO",  R.drawable.ic_light_clouds);
+
+        startService(intent1);
+
 
         if (findViewById(R.id.weather_detail_container) != null) {
             // The detail container view will be present only in the large-screen layouts
