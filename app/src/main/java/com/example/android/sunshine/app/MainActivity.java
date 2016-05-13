@@ -65,14 +65,14 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
 
 
 
-
-        Intent intent1 = new Intent(getApplicationContext(), WatchActualizationService.class);
-        intent1.setAction("ACTION_FOO");
-        intent1.putExtra("EXTRA_MAXTEMP", new Random().nextInt(25));
-        intent1.putExtra("EXTRA_MINTEMP", new Random().nextInt(25));
-        intent1.putExtra("EXTRA_ICONO",  R.drawable.ic_light_clouds);
-
-        startService(intent1);
+//
+//        Intent intent1 = new Intent(getApplicationContext(), WatchActualizationService.class);
+//        intent1.setAction("ACTION_FOO");
+//        intent1.putExtra("EXTRA_MAXTEMP", new Random().nextInt(25));
+//        intent1.putExtra("EXTRA_MINTEMP", new Random().nextInt(25));
+//        intent1.putExtra("EXTRA_ICONO",  R.drawable.ic_light_clouds);
+//
+//        startService(intent1);
 
 
         if (findViewById(R.id.weather_detail_container) != null) {

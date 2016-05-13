@@ -78,8 +78,8 @@ public class FaceWatchService extends CanvasWatchFaceService {
 
     // Weather variables
     Bitmap mbitmap;//icon
-    int mMaxTemp=10;
-    int mMinTemp=6;
+    String mMaxTemp="sdM";
+    String mMinTemp="sdm";
 
     @Override
     public Engine onCreateEngine() {
@@ -320,11 +320,11 @@ public class FaceWatchService extends CanvasWatchFaceService {
 
                     // TemMax
                     canvas.drawText(
-                            String.valueOf(mMaxTemp),
+                            mMaxTemp,
                             mXOffset, mYOffset + mLineHeight, mMaxTempPaint);
                     // TemMax
                     canvas.drawText(
-                            String.valueOf(mMinTemp),
+                            mMinTemp,
                             mXOffset, mYOffset + mLineHeight * 2, mMaxTempPaint);
                     // bitMap
                     if (mbitmap != null) {
@@ -448,8 +448,8 @@ public class FaceWatchService extends CanvasWatchFaceService {
                 if (item.getUri().getPath().compareTo("/weatherdata") == 0) {
                     DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
 
-                    mMaxTemp=dataMap.getInt("maxtemp");
-                    mMinTemp=dataMap.getInt("mintemp");
+                    mMaxTemp=dataMap.getString("maxtemp");
+                    mMinTemp=dataMap.getString("mintemp");
                     Asset weatherImageAsset = dataMap.getAsset("weatherImage");
 //                    mbitmap= BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
 
@@ -492,7 +492,7 @@ public class FaceWatchService extends CanvasWatchFaceService {
                 Log.d(TAG, "onConnected: " + connectionHint);
             }
             Log.d(TAG, "onConnected: " + connectionHint);
-            mMaxTemp=148;
+            mMaxTemp="148 conect";
             Wearable.DataApi.addListener(mGoogleApiClient, Engine.this);
 //          updateConfigDataItemAndUiOnStartup(); levanta la configuracion default
         }

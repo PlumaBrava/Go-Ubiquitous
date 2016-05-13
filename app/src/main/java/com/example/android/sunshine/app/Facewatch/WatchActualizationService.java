@@ -13,6 +13,7 @@ import com.example.android.sunshine.app.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.server.converter.StringToIntConverter;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
@@ -53,8 +54,8 @@ public class WatchActualizationService extends IntentService
     private static final String EXTRA_PARAM1 = "com.example.android.sunshine.app.facewatch.extra.PARAM1";
     private static final String EXTRA_PARAM2 = "com.example.android.sunshine.app.facewatch.extra.PARAM2";
 
-    private int mMaxTemp;
-    private int mMinTemp;
+    private String mMaxTemp;
+    private String mMinTemp;
     private int mIcono;
 
     public WatchActualizationService() {
@@ -108,8 +109,8 @@ public class WatchActualizationService extends IntentService
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_FOO.equals(action)) {
-                mMaxTemp=intent.getIntExtra("EXTRA_MAXTEMP",0);
-                mMinTemp=intent.getIntExtra("EXTRA_MINTEMP",0);
+                mMaxTemp=intent.getStringExtra("EXTRA_MAXTEMP");
+                mMinTemp=intent.getStringExtra("EXTRA_MINTEMP");
                 mIcono=intent.getIntExtra("EXTRA_ICONO",R.drawable.ic_light_rain);
 //                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
 //                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
@@ -235,12 +236,12 @@ public class WatchActualizationService extends IntentService
 
 
 
-    public void sendDataToWatch(int tmax, int tmin, int icono){
+    public void sendDataToWatch(String tmax, String tmin, int icono){
 
         PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/weatherdata");
 
-        putDataMapRequest.getDataMap().putInt("maxtemp",tmax);
-        putDataMapRequest.getDataMap().putInt("mintemp",tmin);
+        putDataMapRequest.getDataMap().putString("maxtemp",tmax);
+        putDataMapRequest.getDataMap().putString("mintemp",tmin);
 //        putDataMapRequest.getDataMap().putLong("tiemStamp",timeStamp);
 
 
