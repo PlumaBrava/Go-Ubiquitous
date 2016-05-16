@@ -6,4 +6,5 @@
     <color name="digital_text_maxTemp">#ffffff</color>
     <color name="digital_text_minTemp">#ffffff</color>
     <color name="digital_text_bitMap">#ffffff</color>
+    <color name="digital_date">#aaaaaa</color>
 </resources>

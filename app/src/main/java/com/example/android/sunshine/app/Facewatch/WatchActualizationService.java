@@ -3,13 +3,20 @@ package com.example.android.sunshine.app.Facewatch;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 
 import com.example.android.sunshine.app.R;
+import com.example.android.sunshine.app.Utility;
+import com.example.android.sunshine.app.data.WeatherContract;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -40,7 +47,9 @@ import java.util.Random;
 public class WatchActualizationService extends IntentService
         implements  DataApi.DataListener,
                     GoogleApiClient.ConnectionCallbacks,
-                    GoogleApiClient.OnConnectionFailedListener{
+                    GoogleApiClient.OnConnectionFailedListener,
+                    Loader.OnLoadCompleteListener<Cursor>
+                    {
 
     private static final String TAG = "WatchActualization";
 
@@ -57,62 +66,65 @@ public class WatchActualizationService extends IntentService
     private String mMaxTemp;
     private String mMinTemp;
     private int mIcono;
+    private Boolean isLoaderReady=false;
+
+
+    private CursorLoader mCursorLoader;
+
+    private static final int FORECAST_LOADER = 1;
+    // For the forecast view we're showing only a small subset of the stored data.
+    // Specify the columns we need.
+    private static final String[] FORECAST_COLUMNS = {
+            // In this case the id needs to be fully qualified with a table name, since
+            // the content provider joins the location & weather tables in the background
+            // (both have an _id column)
+            // On the one hand, that's annoying.  On the other, you can search the weather table
+            // using the location set by the user, which is only in the Location table.
+            // So the convenience is worth it.
+            WeatherContract.WeatherEntry.TABLE_NAME + "." + WeatherContract.WeatherEntry._ID,
+            WeatherContract.WeatherEntry.COLUMN_DATE,
+            WeatherContract.WeatherEntry.COLUMN_SHORT_DESC,
+            WeatherContract.WeatherEntry.COLUMN_MAX_TEMP,
+            WeatherContract.WeatherEntry.COLUMN_MIN_TEMP,
+            WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING,
+            WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
+            WeatherContract.LocationEntry.COLUMN_COORD_LAT,
+            WeatherContract.LocationEntry.COLUMN_COORD_LONG
+    };
+
+    // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
+    // must change.
+    static final int COL_WEATHER_ID = 0;
+    static final int COL_WEATHER_DATE = 1;
+    static final int COL_WEATHER_DESC = 2;
+    static final int COL_WEATHER_MAX_TEMP = 3;
+    static final int COL_WEATHER_MIN_TEMP = 4;
+    static final int COL_LOCATION_SETTING = 5;
+    static final int COL_WEATHER_CONDITION_ID = 6;
+    static final int COL_COORD_LAT = 7;
+    static final int COL_COORD_LONG = 8;
 
     public WatchActualizationService() {
+
+
 
         super("WatchActualizationService");
         Log.d(TAG, "constructor : WatchActualizationService()");
     }
 
-    /**
-     * Starts this service to perform action Foo with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionFoo(Context context, String param1, String param2) {
-        Log.d(TAG, "startActionFoo");
-        Intent intent = new Intent(context, WatchActualizationService.class);
-        intent.setAction(ACTION_FOO);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
-
-    /**
-     * Starts this service to perform action Baz with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionBaz(Context context, String param1, String param2) {
-        Log.d(TAG, "startActionBaz");
-        Intent intent = new Intent(context, WatchActualizationService.class);
-        intent.setAction(ACTION_BAZ);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.d(TAG, "onHandleIntent");
 
-     mGoogleApiClient = new GoogleApiClient.Builder(WatchActualizationService.this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Wearable.API)
-                .build();
-        mGoogleApiClient.connect();
+
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_FOO.equals(action)) {
-                mMaxTemp=intent.getStringExtra("EXTRA_MAXTEMP");
-                mMinTemp=intent.getStringExtra("EXTRA_MINTEMP");
-                mIcono=intent.getIntExtra("EXTRA_ICONO",R.drawable.ic_light_rain);
-//                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
+//                mMaxTemp=intent.getStringExtra("EXTRA_MAXTEMP");
+//                mMinTemp=intent.getStringExtra("EXTRA_MINTEMP");
+//                mIcono=intent.getIntExtra("EXTRA_ICONO",R.drawable.ic_light_rain);
+////                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
 //                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
 
 //                handleActionFoo(param1, param2);
@@ -147,11 +159,9 @@ public class WatchActualizationService extends IntentService
 
     @Override  // GoogleApiClient.ConnectionCallbacks
     public void onConnected(Bundle connectionHint) {
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-            Log.d(TAG, "onConnected: " + connectionHint);
-        }
-        sendDataToWatch(mMaxTemp,mMinTemp,mIcono);
         Log.d(TAG, "onConnected: " + connectionHint);
+        sendDataToWatch();
+
         //mMaxTemp=147;
         Wearable.DataApi.addListener(mGoogleApiClient, this);
 //          updateConfigDataItemAndUiOnStartup(); levanta la configuracion default
@@ -236,38 +246,119 @@ public class WatchActualizationService extends IntentService
 
 
 
-    public void sendDataToWatch(String tmax, String tmin, int icono){
+    public void sendDataToWatch(){
 
-        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/weatherdata");
+        if(isLoaderReady && mGoogleApiClient.isConnected()) {
+            Log.d(TAG, "sendDataToWatch(): true ");
 
-        putDataMapRequest.getDataMap().putString("maxtemp",tmax);
-        putDataMapRequest.getDataMap().putString("mintemp",tmin);
-//        putDataMapRequest.getDataMap().putLong("tiemStamp",timeStamp);
+            PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/weatherdata");
 
+            putDataMapRequest.getDataMap().putString("maxtemp", mMaxTemp);
+            putDataMapRequest.getDataMap().putString("mintemp", mMinTemp);
+        putDataMapRequest.getDataMap().putLong("tiemStamp",new Random().nextLong());
 
-
-        Bitmap bitmap= BitmapFactory.decodeResource(getResources(), icono);
-        Asset asset = createAssetFromBitmap(bitmap);
-        putDataMapRequest.getDataMap().putAsset("weatherImage", asset);
-
-
-
-        PutDataRequest recuest=putDataMapRequest.asPutDataRequest();
-        recuest.setUrgent();
-
-        Wearable.DataApi.putDataItem(mGoogleApiClient,recuest)
-                .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                    @Override
-                    public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
-                        if(dataItemResult.getStatus().isSuccess()){
-                            Log.i(TAG,"Envio Exitoso");
+            Log.d(TAG, "sendDataToWatch(): micono" +mIcono);
+            Log.d(TAG, "Utlity.getArtResourceForWeatherCondition(mIcono)"+ Utility.getArtResourceForWeatherCondition(mIcono));
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), Utility.getArtResourceForWeatherCondition(mIcono) );
+            Asset asset = createAssetFromBitmap(bitmap);
+            putDataMapRequest.getDataMap().putAsset("weatherImage", asset);
 
 
-                        }else{
-                            //Fallo al enviar los datos
+            PutDataRequest recuest = putDataMapRequest.asPutDataRequest();
+            recuest.setUrgent();
+
+            Wearable.DataApi.putDataItem(mGoogleApiClient, recuest)
+                    .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                        @Override
+                        public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
+                            if (dataItemResult.getStatus().isSuccess()) {
+                                Log.i(TAG, "Envio Exitoso");
+
+
+                            } else {
+                                //Fallo al enviar los datos
+                            }
                         }
-                    }
-                });
+                    });
+
+        }else {
+            Log.d(TAG, "sendDataToWatch(): false ");
+        }
+
     }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+
+        mGoogleApiClient = new GoogleApiClient.Builder(WatchActualizationService.this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wearable.API)
+                .build();
+        mGoogleApiClient.connect();
+
+
+        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
+
+        String locationSetting = Utility.getPreferredLocation(this);
+        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
+                locationSetting, System.currentTimeMillis());
+
+//        mCursorLoader = new CursorLoader(context, contentUri, projection, selection, selectionArgs, orderBy);
+        mCursorLoader = new CursorLoader(this,
+                weatherForLocationUri,
+                FORECAST_COLUMNS,
+                null,
+                null,
+                sortOrder);
+
+        mCursorLoader.registerListener(FORECAST_LOADER, this);
+        mCursorLoader.startLoading();
+
+        Log.d(TAG, "On create, carga el loader:");
+    }
+                        @Override
+                        public void onLoadComplete(Loader<Cursor> loader, Cursor data) {
+                            Log.d(TAG, "onLoadComplete:");
+
+
+                            if(data != null && data.moveToFirst()){
+                                // Read weather condition ID from cursor
+                                mIcono = data.getInt(COL_WEATHER_CONDITION_ID);
+
+                                // Read high temperature from cursor and update view
+                                boolean isMetric = Utility.isMetric(this);
+
+                                double high = data.getDouble(COL_WEATHER_MAX_TEMP);
+                                mMaxTemp = Utility.formatTemperature(this, high);
+
+
+                                // Read low temperature from cursor and update view
+                                double low = data.getDouble(COL_WEATHER_MIN_TEMP);
+                                mMinTemp = Utility.formatTemperature(this, low);
+
+
+                                Log.d(TAG, "onLoadComplete: Max tem"+mMaxTemp+" min temp"+mMinTemp);
+                                isLoaderReady=true;
+                            }
+
+                            sendDataToWatch();
+
+                        }
+
+
+//                        @Override
+//                        public void onDestroy() {
+//                            super.onDestroy();
+//
+//                            // Stop the cursor loader
+//                            if (mCursorLoader != null) {
+//                                mCursorLoader.unregisterListener(this);
+//                                mCursorLoader.cancelLoad();
+//                                mCursorLoader.stopLoading();
+//                            }
+//                        }
 
 }

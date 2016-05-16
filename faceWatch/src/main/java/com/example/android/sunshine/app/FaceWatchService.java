@@ -32,8 +32,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
+import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -41,6 +43,7 @@ import android.view.WindowInsets;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
@@ -48,10 +51,17 @@ import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -61,8 +71,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class FaceWatchService extends CanvasWatchFaceService {
     private static final String TAG = "FaceWatchService";
-    private static final Typeface NORMAL_TYPEFACE =
-            Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
 
     /**
      * Update rate in milliseconds for interactive mode. We update once a second since seconds are
@@ -80,6 +88,12 @@ public class FaceWatchService extends CanvasWatchFaceService {
     Bitmap mbitmap;//icon
     String mMaxTemp="sdM";
     String mMinTemp="sdm";
+    Boolean isWatchInicializated=false;
+
+    private static final Typeface BOLD_TYPEFACE =
+            Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD);
+    private static final Typeface NORMAL_TYPEFACE =
+            Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
 
     @Override
     public Engine onCreateEngine() {
@@ -110,12 +124,22 @@ public class FaceWatchService extends CanvasWatchFaceService {
             implements DataApi.DataListener,
             GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
     {
+
+
+
+
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mBackgroundPaint;
         Paint mMaxTempPaint;
         Paint mMinTempPaint;
         Paint mbitMapPaint;
+
+        Paint mDatePaint;
+        Calendar mCalendar;
+        Date mDate;
+        SimpleDateFormat mDayOfWeekFormat;
+        java.text.DateFormat mDateFormat;
 
         float mLineHeight;
 
@@ -127,6 +151,7 @@ public class FaceWatchService extends CanvasWatchFaceService {
             public void onReceive(Context context, Intent intent) {
                 mTime.clear(intent.getStringExtra("time-zone"));
                 mTime.setToNow();
+                initFormats();
             }
         };
         int mTapCount;
@@ -166,7 +191,8 @@ public class FaceWatchService extends CanvasWatchFaceService {
             mBackgroundPaint.setColor(resources.getColor(R.color.background));
 
             mTextPaint = new Paint();
-            mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mTextPaint = createTextPaint(resources.getColor(R.color.digital_text), BOLD_TYPEFACE);
+//                    createTextPaint(resources.getColor(R.color.digital_text));
 
             mMinTempPaint = new Paint();
             mMinTempPaint = createTextPaint(resources.getColor(R.color.digital_text_maxTemp));
@@ -179,13 +205,27 @@ public class FaceWatchService extends CanvasWatchFaceService {
             // borrar, se pone para testear el facewatch
             mbitmap= BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
 
+
+            mDatePaint = createTextPaint(resources.getColor(R.color.digital_date));
+
             mTime = new Time();
+            mDate = new Date();
+            mCalendar = Calendar.getInstance();
+            initFormats();
         }
 
         @Override
         public void onDestroy() {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             super.onDestroy();
+        }
+
+        private Paint createTextPaint(int defaultInteractiveColor, Typeface typeface) {
+            Paint paint = new Paint();
+            paint.setColor(defaultInteractiveColor);
+            paint.setTypeface(typeface);
+            paint.setAntiAlias(true);
+            return paint;
         }
 
         private Paint createTextPaint(int textColor) {
@@ -195,7 +235,12 @@ public class FaceWatchService extends CanvasWatchFaceService {
             paint.setAntiAlias(true);
             return paint;
         }
-
+        private void initFormats() {
+            mDayOfWeekFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+            mDayOfWeekFormat.setCalendar(mCalendar);
+            mDateFormat = DateFormat.getDateFormat(FaceWatchService.this);
+            mDateFormat.setCalendar(mCalendar);
+        }
         @Override
         public void onVisibilityChanged(boolean visible) {
             super.onVisibilityChanged(visible);
@@ -206,7 +251,11 @@ public class FaceWatchService extends CanvasWatchFaceService {
 
                 // Update time zone in case it changed while we weren't visible.
                 mTime.clear(TimeZone.getDefault().getID());
+
+                // Update time zone and date formats, in case they changed while we weren't visible.
+                mCalendar.setTimeZone(TimeZone.getDefault());
                 mTime.setToNow();
+                initFormats();
             } else {
                 unregisterReceiver();
 
@@ -251,6 +300,8 @@ public class FaceWatchService extends CanvasWatchFaceService {
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
 
             mTextPaint.setTextSize(textSize);
+            mDatePaint.setTextSize(resources.getDimension(R.dimen.digital_date_text_size));
+
         }
 
         @Override
@@ -272,6 +323,7 @@ public class FaceWatchService extends CanvasWatchFaceService {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
                     mTextPaint.setAntiAlias(!inAmbientMode);
+                    mDatePaint.setAntiAlias(!inAmbientMode);
                 }
                 invalidate();
             }
@@ -307,6 +359,9 @@ public class FaceWatchService extends CanvasWatchFaceService {
 
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
+            long now = System.currentTimeMillis();
+            mCalendar.setTimeInMillis(now);
+            mDate.setTime(now);
             // Draw the background.
             if (isInAmbientMode()) {
                 canvas.drawColor(Color.BLACK);
@@ -332,14 +387,14 @@ public class FaceWatchService extends CanvasWatchFaceService {
                     }
 
 
-                    // Day of week
-//                canvas.drawText(
-//                        mDayOfWeekFormat.format(mDate),
-//                        mXOffset, mYOffset + mLineHeight, mDatePaint);
-//                // Date
-//                canvas.drawText(
-//                        mDateFormat.format(mDate),
-//                        mXOffset, mYOffset + mLineHeight * 2, mDatePaint);
+//                     Day of week
+                canvas.drawText(
+                        mDayOfWeekFormat.format(mDate),
+                        mXOffset, mYOffset + mLineHeight, mDatePaint);
+//                 Date
+                canvas.drawText(
+                        mDateFormat.format(mDate),
+                        mXOffset, mYOffset + mLineHeight * 2, mDatePaint);
 //            }
                 }
 
@@ -429,10 +484,13 @@ public class FaceWatchService extends CanvasWatchFaceService {
             }
         }
 
+
+
         @Override // DataApi.DataListener
         public void onDataChanged(DataEventBuffer dataEvents) {
             Log.d(TAG, "onDataChanged: ");
             for (DataEvent dataEvent : dataEvents) {
+                Log.d(TAG, "odataEven: "+dataEvent);
                 if (dataEvent.getType() != DataEvent.TYPE_CHANGED) {
 
 
@@ -443,9 +501,10 @@ public class FaceWatchService extends CanvasWatchFaceService {
 
                 //sacar el dato
                 DataItem item = dataEvent.getDataItem();
-//                    Log.i(LOG, "getItemUri :" + item.getUri().getPath().toString());
+                    Log.i(TAG, "getItemUri :" + item.getUri().getPath().toString());
 //                    Log.i(LOG, "getItemUri.compareTO :" + item.getUri().getPath().compareTo("/envionumero"));
                 if (item.getUri().getPath().compareTo("/weatherdata") == 0) {
+                    isWatchInicializated=true;
                     DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
 
                     mMaxTemp=dataMap.getString("maxtemp");
@@ -494,6 +553,7 @@ public class FaceWatchService extends CanvasWatchFaceService {
             Log.d(TAG, "onConnected: " + connectionHint);
             mMaxTemp="148 conect";
             Wearable.DataApi.addListener(mGoogleApiClient, Engine.this);
+            sendinitWatch(isWatchInicializated);
 //          updateConfigDataItemAndUiOnStartup(); levanta la configuracion default
         }
 
@@ -513,6 +573,33 @@ public class FaceWatchService extends CanvasWatchFaceService {
             Log.d(TAG, "onConnectionFailed: " + result);
         }
 
+
+        public void sendinitWatch(boolean isWatchInit){
+
+        long timeStamp=new Random().nextInt(25);
+        int steps=new Random().nextInt(25);
+            PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/watch_init");
+
+            putDataMapRequest.getDataMap().putInt("step-count",steps);
+            putDataMapRequest.getDataMap().putLong("tiemStamp",timeStamp);
+            putDataMapRequest.getDataMap().putBoolean("watchInicialization",isWatchInit);
+
+            PutDataRequest recuest=putDataMapRequest.asPutDataRequest();
+            recuest.setUrgent();
+
+            Wearable.DataApi.putDataItem(mGoogleApiClient,recuest)
+                    .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                        @Override
+                        public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
+                            if(dataItemResult.getStatus().isSuccess()){
+//                                mTextView.append("envio exitoso");
+
+                            }else{
+                                //Fallo al enviar los datos
+                            }
+                        }
+                    });
+        }
 
     }
 

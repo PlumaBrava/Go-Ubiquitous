@@ -185,7 +185,20 @@
             android:exported="false" />
         <service
             android:name=".Facewatch.WatchActualizationService"
-            android:exported="false"></service>
+            android:exported="false" />
+        <service
+            android:name=".Facewatch.WatchInitService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/watch_init" />
+
+            </intent-filter>
+
+        </service>
     </application>
 
 </manifest>

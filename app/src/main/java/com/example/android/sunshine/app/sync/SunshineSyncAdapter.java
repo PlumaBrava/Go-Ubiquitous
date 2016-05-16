@@ -32,6 +32,7 @@ import android.util.Log;
 import com.bumptech.glide.Glide;
 import com.example.android.sunshine.app.BuildConfig;
 import com.example.android.sunshine.app.Facewatch.WatchActualizationService;
+import com.example.android.sunshine.app.Facewatch.WatchUtility;
 import com.example.android.sunshine.app.MainActivity;
 import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
@@ -371,11 +372,12 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 updateWidgets();
                 updateMuzei();
                 notifyWeather();
-                updateWatch(
-                        cvArray[0].getAsDouble(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP),
-                        cvArray[0].getAsDouble(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP),
-                        cvArray[0].getAsInteger(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID)
-                        );
+                WatchUtility.updateWatch(getContext());
+//                updateWatch(
+////                        cvArray[0].getAsDouble(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP),
+////                        cvArray[0].getAsDouble(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP),
+////                        cvArray[0].getAsInteger(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID)
+//                        );
             }
             Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
             setLocationStatus(getContext(), LOCATION_STATUS_OK);
@@ -387,17 +389,17 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
-    private void updateWatch(Double high, Double low, int weatherId){
-
-        Intent intent1 = new Intent(getContext(), WatchActualizationService.class);
-        intent1.setAction("ACTION_FOO");
-        intent1.putExtra("EXTRA_MAXTEMP", Utility.formatTemperature(getContext(), high));
-        intent1.putExtra("EXTRA_MINTEMP", Utility.formatTemperature(getContext(), low));
-        intent1.putExtra("EXTRA_ICONO",  Utility.getArtResourceForWeatherCondition(weatherId));
-
-        getContext().startService(intent1);
-
-    }
+//    private void updateWatch(){
+//
+//        Intent intent1 = new Intent(getContext(), WatchActualizationService.class);
+//        intent1.setAction("ACTION_FOO");
+////        intent1.putExtra("EXTRA_MAXTEMP", Utility.formatTemperature(getContext(), high));
+////        intent1.putExtra("EXTRA_MINTEMP", Utility.formatTemperature(getContext(), low));
+////        intent1.putExtra("EXTRA_ICONO",  Utility.getArtResourceForWeatherCondition(weatherId));
+//
+//        getContext().startService(intent1);
+//
+//    }
 
     private void updateWidgets() {
         Context context = getContext();
