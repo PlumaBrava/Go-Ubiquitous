@@ -12,9 +12,7 @@ public class WatchUtility {
 
         Intent intent1 = new Intent(context, WatchActualizationService.class);
         intent1.setAction("ACTION_FOO");
-//        intent1.putExtra("EXTRA_MAXTEMP", Utility.formatTemperature(getContext(), high));
-//        intent1.putExtra("EXTRA_MINTEMP", Utility.formatTemperature(getContext(), low));
-//        intent1.putExtra("EXTRA_ICONO",  Utility.getArtResourceForWeatherCondition(weatherId));
+
 
         context.startService(intent1);
     }

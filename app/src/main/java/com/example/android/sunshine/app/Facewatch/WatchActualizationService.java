@@ -54,14 +54,10 @@ public class WatchActualizationService extends IntentService
     private static final String TAG = "WatchActualization";
 
     GoogleApiClient mGoogleApiClient;
-    // TODO: Rename actions, choose action names that describe tasks that this
-    // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
-    private static final String ACTION_FOO = "ACTION_FOO";
-    private static final String ACTION_BAZ = "com.example.android.sunshine.app.facewatch.action.BAZ";
 
-    // TODO: Rename parameters
-    private static final String EXTRA_PARAM1 = "com.example.android.sunshine.app.facewatch.extra.PARAM1";
-    private static final String EXTRA_PARAM2 = "com.example.android.sunshine.app.facewatch.extra.PARAM2";
+    private static final String ACTION_FOO = "ACTION_FOO";
+
+
 
     private String mMaxTemp;
     private String mMinTemp;
@@ -121,40 +117,12 @@ public class WatchActualizationService extends IntentService
         if (intent != null) {
             final String action = intent.getAction();
             if (ACTION_FOO.equals(action)) {
-//                mMaxTemp=intent.getStringExtra("EXTRA_MAXTEMP");
-//                mMinTemp=intent.getStringExtra("EXTRA_MINTEMP");
-//                mIcono=intent.getIntExtra("EXTRA_ICONO",R.drawable.ic_light_rain);
-////                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
-//                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
 
-//                handleActionFoo(param1, param2);
-            } else if (ACTION_BAZ.equals(action)) {
-                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
-                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
-                handleActionBaz(param1, param2);
             }
         }
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionFoo(String param1, String param2) {
-        Log.d(TAG, "handleActionFoo");
-        // TODO: Handle action Foo
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
 
-    /**
-     * Handle action Baz in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionBaz(String param1, String param2) {
-        Log.d(TAG, "handleActionBaz");
-        // TODO: Handle action Baz
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
 
 
     @Override  // GoogleApiClient.ConnectionCallbacks
@@ -162,9 +130,9 @@ public class WatchActualizationService extends IntentService
         Log.d(TAG, "onConnected: " + connectionHint);
         sendDataToWatch();
 
-        //mMaxTemp=147;
+
         Wearable.DataApi.addListener(mGoogleApiClient, this);
-//          updateConfigDataItemAndUiOnStartup(); levanta la configuracion default
+
     }
 
     @Override  // GoogleApiClient.ConnectionCallbacks
@@ -176,9 +144,7 @@ public class WatchActualizationService extends IntentService
 
     @Override  // GoogleApiClient.OnConnectionFailedListener
     public void onConnectionFailed(ConnectionResult result) {
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-            Log.d(TAG, "onConnectionFailed: " + result);
-        }
+
         Log.d(TAG, "onConnectionFailed: " + result);
     }
 
@@ -195,30 +161,11 @@ public class WatchActualizationService extends IntentService
 
             //sacar el dato
             DataItem item = dataEvent.getDataItem();
-//                    Log.i(LOG, "getItemUri :" + item.getUri().getPath().toString());
-//                    Log.i(LOG, "getItemUri.compareTO :" + item.getUri().getPath().compareTo("/envionumero"));
+
             if (item.getUri().getPath().compareTo("/weatherdata") == 0) {
                 DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-//
-//                mMaxTemp=dataMap.getInt("maxtemp");
-//                mMinTemp=dataMap.getInt("mintemp");
-//                Asset weatherImageAsset = dataMap.getAsset("weatherImage");
-//                mbitmap= BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
 
 
-
-                // Loads image on background thread.
-//                new LoadBitmapAsyncTask().execute(weatherImageAsset);
-
-
-
-
-
-
-//                    mbitmap = loadBitmapFromAsset(profileAsset);
-//                        mTextView.setText("int: " + dataMap.getInt("numero"));
-//                        Log.i(LOG, "setText_numero :" + dataMap.getInt("numero"));
-//                    mTextView.append("   ---   long:" + dataMap.getLong(KEYB));
             }
 //                    Log.i(LOG, "NO Compara");
 

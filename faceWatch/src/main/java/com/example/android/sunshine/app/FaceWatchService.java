@@ -509,9 +509,7 @@ public class FaceWatchService extends CanvasWatchFaceService {
             protected void onPostExecute(Bitmap bitmap) {
 
                 if (bitmap != null) {
-//                    LOGD(TAG, "Setting background image on second page..");
-//                    moveToPage(1);
-//                    mAssetFragment.setBackgroundImage(bitmap);
+
                     mbitmap=bitmap;
                     invalidate();
                 }
@@ -552,58 +550,35 @@ public class FaceWatchService extends CanvasWatchFaceService {
                     new LoadBitmapAsyncTask().execute(weatherImageAsset);
 
                     invalidate();
-
-
-
-
-//                    mbitmap = loadBitmapFromAsset(profileAsset);
-//                        mTextView.setText("int: " + dataMap.getInt("numero"));
-//                        Log.i(LOG, "setText_numero :" + dataMap.getInt("numero"));
-//                    mTextView.append("   ---   long:" + dataMap.getLong(KEYB));
                 }
-//                    Log.i(LOG, "NO Compara");
-
-
-//              Lee la configuracion del reloj que se envia desde el telefono
-//                if (!dataItem.getUri().getPath().equals(
-//                        DigitalWatchFaceUtil.PATH_WITH_FEATURE)) {
-//                    continue;
-//                }
-
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
                 DataMap config = dataMapItem.getDataMap();
                 if (Log.isLoggable(TAG, Log.DEBUG)) {
                     Log.d(TAG, "Config DataItem updated:" + config);
                 }
-//                updateUiForConfigDataMap(config); estudiar.....
+
             }
         }
 
         @Override  // GoogleApiClient.ConnectionCallbacks
         public void onConnected(Bundle connectionHint) {
-            if (Log.isLoggable(TAG, Log.DEBUG)) {
-                Log.d(TAG, "onConnected: " + connectionHint);
-            }
+
             Log.d(TAG, "onConnected: " + connectionHint);
-//            mMaxTemp="148 conect";
+
             Wearable.DataApi.addListener(mGoogleApiClient, Engine.this);
             sendinitWatch(isWatchInicializated);
-//          updateConfigDataItemAndUiOnStartup(); levanta la configuracion default
+
         }
 
         @Override  // GoogleApiClient.ConnectionCallbacks
         public void onConnectionSuspended(int cause) {
-            if (Log.isLoggable(TAG, Log.DEBUG)) {
-                Log.d(TAG, "onConnectionSuspended: " + cause);
-            }
+
             Log.d(TAG, "onConnectionSuspended: " + cause);
         }
 
         @Override  // GoogleApiClient.OnConnectionFailedListener
         public void onConnectionFailed(ConnectionResult result) {
-            if (Log.isLoggable(TAG, Log.DEBUG)) {
-                Log.d(TAG, "onConnectionFailed: " + result);
-            }
+
             Log.d(TAG, "onConnectionFailed: " + result);
         }
 
@@ -626,7 +601,7 @@ public class FaceWatchService extends CanvasWatchFaceService {
                         @Override
                         public void onResult(@NonNull DataApi.DataItemResult dataItemResult) {
                             if(dataItemResult.getStatus().isSuccess()){
-//                                mTextView.append("envio exitoso");
+                                //       "envio exitoso"
 
                             }else{
                                 //Fallo al enviar los datos
