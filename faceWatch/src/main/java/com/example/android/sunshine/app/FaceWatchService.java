@@ -86,8 +86,8 @@ public class FaceWatchService extends CanvasWatchFaceService {
 
     // Weather variables
     Bitmap mbitmap;//icon
-    String mMaxTemp="sdM";
-    String mMinTemp="sdm";
+    String mMaxTemp="";
+    String mMinTemp="";
     Boolean isWatchInicializated=false;
 
     private static final Typeface BOLD_TYPEFACE =
@@ -142,6 +142,9 @@ public class FaceWatchService extends CanvasWatchFaceService {
         java.text.DateFormat mDateFormat;
 
         float mLineHeight;
+        float mLineHeightdate;
+        float mCenterX;
+        float mCenterY;
 
         Paint mTextPaint;
         boolean mAmbient;
@@ -183,9 +186,13 @@ public class FaceWatchService extends CanvasWatchFaceService {
                     .build());
             Resources resources = FaceWatchService.this.getResources();
 
+
+
+
             //read the dimentions settings
             mYOffset = resources.getDimension(R.dimen.digital_y_offset);
             mLineHeight = resources.getDimension(R.dimen.digital_line_height);
+
 
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.background));
@@ -195,15 +202,15 @@ public class FaceWatchService extends CanvasWatchFaceService {
 //                    createTextPaint(resources.getColor(R.color.digital_text));
 
             mMinTempPaint = new Paint();
-            mMinTempPaint = createTextPaint(resources.getColor(R.color.digital_text_maxTemp));
+            mMinTempPaint = createTextPaint(resources.getColor(R.color.digital_text_minTemp));
 
             mMaxTempPaint = new Paint();
-            mMaxTempPaint = createTextPaint(resources.getColor(R.color.digital_text_minTemp));
+            mMaxTempPaint = createTextPaint(resources.getColor(R.color.digital_text_maxTemp));
 
             mbitMapPaint = new Paint();
             mbitMapPaint = createTextPaint(resources.getColor(R.color.digital_text_bitMap));
             // borrar, se pone para testear el facewatch
-            mbitmap= BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
+//            mbitmap= BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
 
 
             mDatePaint = createTextPaint(resources.getColor(R.color.digital_date));
@@ -294,13 +301,27 @@ public class FaceWatchService extends CanvasWatchFaceService {
             // Load resources that have alternate values for round watches.
             Resources resources = FaceWatchService.this.getResources();
             boolean isRound = insets.isRound();
+
+            mLineHeightdate = resources.getDimension(isRound
+                    ? R.dimen.digital_line_date_height_round : R.dimen.digital_line_date_height);
+
             mXOffset = resources.getDimension(isRound
                     ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
             float textSize = resources.getDimension(isRound
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
+            float textSizeTmax = resources.getDimension(isRound
+                    ? R.dimen.digital_text_size_Tmax_round : R.dimen.digital_text_size_Tmax);
+            float textSizeTmin = resources.getDimension(isRound
+                    ? R.dimen.digital_text_size_Tmin_round : R.dimen.digital_text_size_Tmin);
+            float textSizedate = resources.getDimension(isRound
+                    ? R.dimen.digital_date_text_size_round : R.dimen.digital_date_text_size);
 
             mTextPaint.setTextSize(textSize);
-            mDatePaint.setTextSize(resources.getDimension(R.dimen.digital_date_text_size));
+            mDatePaint.setTextSize(textSizedate);
+            mMinTempPaint.setTextSize(textSizeTmin);
+            mMaxTempPaint.setTextSize(textSizeTmax);
+            mMaxTempPaint.setTypeface(BOLD_TYPEFACE);
+
 
         }
 
@@ -333,6 +354,20 @@ public class FaceWatchService extends CanvasWatchFaceService {
             updateTimer();
         }
 
+
+        @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            super.onSurfaceChanged(holder, format, width, height);
+
+            /*
+             * Find the coordinates of the center point on the screen, and ignore the window
+             * insets, so that, on round watches with a "chin", the watch face is centered on the
+             * entire screen, not just the usable portion.
+             */
+            Log.d(TAG, "onSurfaceChanged  w: "+width+" H: "+height);
+            mCenterX = width / 2f;
+            mCenterY = height / 2f;
+        }
         /**
          * Captures tap event (and tap type) and toggles the background color if the user finishes
          * a tap.
@@ -373,29 +408,27 @@ public class FaceWatchService extends CanvasWatchFaceService {
                 // into each other in ambient mode.
                 if (getPeekCardPosition().isEmpty()) {
 
+//                     Day of week and day
+                    canvas.drawText(
+                            mDayOfWeekFormat.format(mDate)+", "+mDateFormat.format(mDate),
+                            mCenterX -(int)mCenterX/2, mYOffset + mLineHeightdate, mDatePaint);
+
                     // TemMax
                     canvas.drawText(
                             mMaxTemp,
-                            mXOffset, mYOffset + mLineHeight, mMaxTempPaint);
-                    // TemMax
+//                            mXOffset, mYOffset + mLineHeight, mMaxTempPaint);
+                            mCenterX-(int)2*mCenterX/3, mCenterY +mLineHeight, mMaxTempPaint);
+                    // TemMin
                     canvas.drawText(
                             mMinTemp,
-                            mXOffset, mYOffset + mLineHeight * 2, mMaxTempPaint);
+                            mCenterX-(int)2*mCenterX/3, mCenterY + mLineHeight * 2, mMinTempPaint);
+
                     // bitMap
                     if (mbitmap != null) {
-                        canvas.drawBitmap(mbitmap, mXOffset+mLineHeight * 3, mYOffset + mLineHeight * 1, mbitMapPaint);
+
+                        canvas.drawBitmap(mbitmap,mCenterX, mCenterY , mbitMapPaint);
                     }
 
-
-//                     Day of week
-                canvas.drawText(
-                        mDayOfWeekFormat.format(mDate),
-                        mXOffset, mYOffset + mLineHeight, mDatePaint);
-//                 Date
-                canvas.drawText(
-                        mDateFormat.format(mDate),
-                        mXOffset, mYOffset + mLineHeight * 2, mDatePaint);
-//            }
                 }
 
 
@@ -480,6 +513,7 @@ public class FaceWatchService extends CanvasWatchFaceService {
 //                    moveToPage(1);
 //                    mAssetFragment.setBackgroundImage(bitmap);
                     mbitmap=bitmap;
+                    invalidate();
                 }
             }
         }
@@ -517,7 +551,7 @@ public class FaceWatchService extends CanvasWatchFaceService {
                     // Loads image on background thread.
                     new LoadBitmapAsyncTask().execute(weatherImageAsset);
 
-
+                    invalidate();
 
 
 
@@ -551,7 +585,7 @@ public class FaceWatchService extends CanvasWatchFaceService {
                 Log.d(TAG, "onConnected: " + connectionHint);
             }
             Log.d(TAG, "onConnected: " + connectionHint);
-            mMaxTemp="148 conect";
+//            mMaxTemp="148 conect";
             Wearable.DataApi.addListener(mGoogleApiClient, Engine.this);
             sendinitWatch(isWatchInicializated);
 //          updateConfigDataItemAndUiOnStartup(); levanta la configuracion default

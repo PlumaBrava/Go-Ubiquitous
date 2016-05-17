@@ -2,9 +2,10 @@
 <resources>
     <color name="background">#000000</color>
     <color name="background2">#000088</color>
+    <color name="background3">#03A9F4</color>
     <color name="digital_text">#ffffff</color>
     <color name="digital_text_maxTemp">#ffffff</color>
-    <color name="digital_text_minTemp">#ffffff</color>
+    <color name="digital_text_minTemp">#babaff</color>
     <color name="digital_text_bitMap">#ffffff</color>
     <color name="digital_date">#aaaaaa</color>
 </resources>

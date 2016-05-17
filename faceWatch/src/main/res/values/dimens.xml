@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="digital_text_size">40dp</dimen>
-    <dimen name="digital_text_size_round">45dp</dimen>
-    <dimen name="digital_x_offset">15dp</dimen>
+    <!--Size and location of the hour-->
+    <dimen name="digital_text_size">30dp</dimen>
+    <dimen name="digital_text_size_round">40dp</dimen>
+    <dimen name="digital_x_offset">20dp</dimen>
     <dimen name="digital_x_offset_round">25dp</dimen>
-    <dimen name="digital_y_offset">90dp</dimen>
+    <dimen name="digital_y_offset">70dp</dimen>
+
+    <!--Size and location of Tmax-->
+    <dimen name="digital_text_size_Tmax">20dp</dimen>
+    <dimen name="digital_text_size_Tmax_round">25dp</dimen>
+    <dimen name="digital_text_size_Tmax_xoffset">140dp</dimen>
+
+    <!--Size and location of Tmin-->
+    <dimen name="digital_text_size_Tmin">15dp</dimen>
+    <dimen name="digital_text_size_Tmin_round">20dp</dimen>
+    <dimen name="digital_text_size_Tmin_xoffset">140dp</dimen>
+
+    <!--Size and location of Date -->
+    <dimen name="digital_date_text_size">10dp</dimen>
+    <dimen name="digital_date_text_size_round">15dp</dimen>
+    <dimen name="digital_line_date_height">15dp</dimen>
+    <dimen name="digital_line_date_height_round">20dp</dimen>
+
     <dimen name="digital_line_height">25dp</dimen>
-    <dimen name="digital_date_text_size">25dp</dimen>
+
 </resources>
